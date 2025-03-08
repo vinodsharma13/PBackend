@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    container_name: paribhasha_web
+    command: gunicorn PBackend.wsgi:application --bind 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+
+
+
