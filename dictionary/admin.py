@@ -13,7 +13,7 @@ class ParibhashaLineInline(admin.TabularInline):  # This creates a related form
 class ParibhashaAdmin(admin.ModelAdmin):
     list_display = ('hindi', 'hinglish', 'pageno')
     search_fields = ('hindi', 'hinglish')
-    list_filter = ('pageno',)
+    # list_filter = ('pageno',)
     inlines = [ParibhashaLineInline]  # Attach the inline form here
 
 
