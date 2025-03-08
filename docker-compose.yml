@@ -14,7 +14,8 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-      - /var/lib/paribhasha-data:/app/db.sqlite3  # Persist your SQLite DB here
+      - /var/lib/paribhasha-data/db.sqlite3:/app/db.sqlite3
+
     env_file:
       - .env
 
