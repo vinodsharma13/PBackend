@@ -1,23 +1,26 @@
-# Use an official Python runtime as the base image
-FROM python:3.10
+# Use an official Python image
+FROM python:3.9.1
 
 # Set the working directory
 WORKDIR /app
 
-# Copy project files to the container
+# Copy files to the container
 COPY . /app
 
 # Install dependencies
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install python-dotenv
+
 
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
-# Run database migrations
+# Run migrations
 RUN python manage.py migrate
 
-# Expose the application port
+# Expose port 8000
 EXPOSE 8000
 
-# Start the Django application with Gunicorn
+# Start the app using Gunicorn
 CMD ["gunicorn", "PBackend.wsgi:application", "--bind", "0.0.0.0:8000"]
