@@ -32,6 +32,11 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-8i7d(b*p39)z*=$d6n@
 # DEBUG = True
 DEBUG = os.getenv('DJANGO_DEBUG') == 'True'
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://pb.welfareinfo.net"
+]
+
+
 
 # ALLOWED_HOSTS = []
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS').split(',')
