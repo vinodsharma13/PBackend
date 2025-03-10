@@ -8,6 +8,7 @@ gunicorn==23.0.0
 indic-transliteration==2.3.69
 lxml==5.3.1
 markdown-it-py==3.0.0
+python-docx==1.1.2
 python-dotenv==1.0.1
 regex==2024.11.6
 requests==2.32.3

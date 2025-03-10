@@ -25,24 +25,24 @@ def pb_delete_all(request):
         return JsonResponse({"error": "Not Deleted"}, status=404)
 
 
-def get_hinglish_google(request):
-    translator = Translator()
-    hindi_word="अखण्ड"
-    try:
-        # Fetch the word from the database
-        paribhasha_obj = Paribhasha.objects.get(hindi=hindi_word)
+# def get_hinglish_google(request):
+#     translator = Translator()
+#     hindi_word="अखण्ड"
+#     try:
+#         # Fetch the word from the database
+#         paribhasha_obj = Paribhasha.objects.get(hindi=hindi_word)
 
-        # If Hinglish is not saved in the database, generate it dynamically
-        if not paribhasha_obj.hinglish:
-            hinglish_translation = translator.translate(hindi_word, src="hi", dest="en").text  # Google Translate API
-            paribhasha_obj.hinglish = hinglish_translation  # Update model
+#         # If Hinglish is not saved in the database, generate it dynamically
+#         if not paribhasha_obj.hinglish:
+#             hinglish_translation = translator.translate(hindi_word, src="hi", dest="en").text  # Google Translate API
+#             paribhasha_obj.hinglish = hinglish_translation  # Update model
 
-            paribhasha_obj.save()  # Save updated Hinglish field
+#             paribhasha_obj.save()  # Save updated Hinglish field
 
-        return JsonResponse({"hindi": hindi_word, "hinglish": paribhasha_obj.hinglish}, status=200)
+#         return JsonResponse({"hindi": hindi_word, "hinglish": paribhasha_obj.hinglish}, status=200)
 
-    except Paribhasha.DoesNotExist:
-        return JsonResponse({"error": "Word not found in database"}, status=404)
+#     except Paribhasha.DoesNotExist:
+#         return JsonResponse({"error": "Word not found in database"}, status=404)
 
 
 @csrf_exempt
