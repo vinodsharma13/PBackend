@@ -21,7 +21,7 @@ class Word(models.Model):  # ✅ Renamed from Paribhasha to Word
 
 class Paribhasha(models.Model):  # ✅ Renamed from ParibhashaLine to Paribhasha
     word = models.ForeignKey(Word, related_name="paribhashas", on_delete=models.CASCADE, null=True)
-    description = models.TextField(max_length=600)
+    description = models.TextField(max_length=1000)
 
     class Meta:
         verbose_name = "Paribhasha"
