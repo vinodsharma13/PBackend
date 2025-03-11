@@ -1,50 +1,44 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required, user_passes_test  # ✅ Import auth decorators
 import json
-from docx import Document
 import os
-import re  # Import regex for additional cleanup
-
-from dictionary.models import Paribhasha, ParibhashaLine
-
-
+import re
+from docx import Document
+from dictionary.models import Word, Paribhasha
 from indic_transliteration.sanscript import transliterate, ITRANS, DEVANAGARI
 
+# ✅ Function to check if user is a superuser
+def superuser_required(user):
+    return user.is_superuser
+
+@login_required  # ✅ Ensures only logged-in users can access this view
+@user_passes_test(superuser_required)  # ✅ Ensures only superusers can access
 def pb_delete_all(request):
     try:
-        # Fetch the word from the database
-        paribhasha_all = Paribhasha.objects.all()
-        print(paribhasha_all.count)
-        paribhasha_all.delete()
+        # Fetch all words from the database
+        word_all = Word.objects.all()
+        print(word_all.count())
+
+        # Delete all words (which also deletes related Paribhasha records)
+        word_all.delete()
+
+        # Path to the JSON file
+        json_file_path = os.path.join("media", "paribhasha_samhita.json")
+
+        # Check if file exists, then delete it
+        if os.path.exists(json_file_path):
+            os.remove(json_file_path)
+
+        return JsonResponse({"message": "All words deleted, JSON file removed."}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": f"Deletion failed: {str(e)}"}, status=500)
 
 
-        return JsonResponse({"paribhasha": "Deleted all"}, status=200)
-
-    except Paribhasha.DoesNotExist:
-        return JsonResponse({"error": "Not Deleted"}, status=404)
-
-
-# def get_hinglish_google(request):
-#     translator = Translator()
-#     hindi_word="अखण्ड"
-#     try:
-#         # Fetch the word from the database
-#         paribhasha_obj = Paribhasha.objects.get(hindi=hindi_word)
-
-#         # If Hinglish is not saved in the database, generate it dynamically
-#         if not paribhasha_obj.hinglish:
-#             hinglish_translation = translator.translate(hindi_word, src="hi", dest="en").text  # Google Translate API
-#             paribhasha_obj.hinglish = hinglish_translation  # Update model
-
-#             paribhasha_obj.save()  # Save updated Hinglish field
-
-#         return JsonResponse({"hindi": hindi_word, "hinglish": paribhasha_obj.hinglish}, status=200)
-
-#     except Paribhasha.DoesNotExist:
-#         return JsonResponse({"error": "Word not found in database"}, status=404)
-
-
+@login_required  # ✅ Ensures only logged-in users can access this view
+@user_passes_test(superuser_required)  # ✅ Ensures only superusers can access
 @csrf_exempt
 def ip_json(request):
     if request.method == "POST" and request.FILES.get("file"):
@@ -109,11 +103,8 @@ def ip_json(request):
     return render(request, "upload.html")  # Render the file upload form
 
 
-
-# from indic_transliteration.sanscript import transliterate, HK
-from indic_transliteration.sanscript import transliterate, ITRANS, DEVANAGARI
-
-
+@login_required  # ✅ Ensures only logged-in users can access this view
+@user_passes_test(superuser_required)  # ✅ Ensures only superusers can access
 @csrf_exempt
 def ip_models(request):
     # Load JSON file from media directory
@@ -130,40 +121,24 @@ def ip_models(request):
 
     inserted_count = 0  # Track inserted words
 
-
     for word, meanings in data.items():
+        hindi_word = word
 
-        # Insert word into Paribhasha model (if not exists)
-        hindi_word=word
+        # **Fetch Hinglish from Transliteration API**
+        hinglish_translation = transliterate(hindi_word, DEVANAGARI, ITRANS).lower()
 
-        # hinglish_translation = translator.translate(hindi_word, src="hi", dest="en").text  # Google Translate API
-
-        # Convert Hindi word to Hinglish (ITRANS gives readable Hinglish)
-        # hinglish_translation = transliterate(hindi_word, DEVANAGARI, ITRANS).lower()
-         # **Fetch Hinglish from Google Transliteration API**
-        hinglish_translation = get_hinglish_from_itran(hindi_word)
-
-        # Insert word into Paribhasha model
-        paribhasha_obj, created = Paribhasha.objects.get_or_create(
+        # **Insert word into Word model**
+        word_obj, created = Word.objects.get_or_create(
             hindi=hindi_word,
             defaults={"hinglish": hinglish_translation, "pageno": None}
         )
-        # Insert meanings into ParibhashaLine model, linking to Paribhasha
+
+        # **Insert meanings into Paribhasha model, linking to Word**
         for meaning in meanings:
-            ParibhashaLine.objects.create(paribhasha=paribhasha_obj, name=meaning)
+            Paribhasha.objects.create(word=word_obj, description=meaning)  # ✅ Fix: Changed `paribhasha` to `word`
 
         if created:
             inserted_count += 1  # Count newly added words
 
     return JsonResponse({"message": f"Data imported successfully! {inserted_count} new words added."}, status=200)
 
-
-
-
-def get_hinglish_from_itran(hindi_text):
-    try:
-        hinglish_translation = transliterate(hindi_text, DEVANAGARI, ITRANS)
-        return hinglish_translation.lower()
-    except Exception as e:
-        print(f"Error: {e}")
-        return hindi_text  # Fallback in case of failure
