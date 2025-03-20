@@ -54,6 +54,15 @@ class WordAdmin(admin.ModelAdmin):
     inlines = [ParibhashaInline]
     readonly_fields = ('review_by',)
     ordering = ('hindi',)
+    def get_sortable_by(self, request):
+        """
+        ✅ Allow sorting for superusers, but disable sorting for other users.
+        """
+        if request.user.is_superuser:
+            return super().get_sortable_by(request)  # Allow default sorting
+        return set()  # Disable sorting for non-superusers
+
+
 
     def get_readonly_fields(self, request, obj=None):
         """
